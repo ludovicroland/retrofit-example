@@ -21,6 +21,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public final class Services
 {
 
+  //Interface qui va me permettre de faire le lien entre l'appel réseau fait via retrofit
+  // et l'appelant (une activité ou un fragment généralement)
   public interface OnResponseListener<T>
   {
 
@@ -30,6 +32,7 @@ public final class Services
 
   }
 
+  //Implémentation du pattern singleton pour ne pas créer plusieurs instance de retrofit (trop couteux)
   private static volatile Services instance;
 
   public static Services getInstance()
@@ -52,13 +55,16 @@ public final class Services
 
   public Services()
   {
+    //Configuration du client okhttp
     final OkHttpClient.Builder okHttpBuilder = new OkHttpClient.Builder();
     okHttpBuilder.readTimeout(30, TimeUnit.SECONDS);
     okHttpBuilder.connectTimeout(30, TimeUnit.SECONDS);
 
+    //configuration de GSON pour parser les données JSON
     final GsonBuilder gsonBuilder = new GsonBuilder();
     gsonBuilder.setLenient();
 
+    //création de l'instance de retrofit
     final Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
     retrofitBuilder.baseUrl("https://api.github.com/");
     retrofitBuilder.addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()));
@@ -67,8 +73,10 @@ public final class Services
     retrofit = retrofitBuilder.build().create(IServices.class);
   }
 
+  //méthode permettant de faire l'appel
   public void listRepos(@NonNull String user, @NonNull final OnResponseListener<List<Repo>> listener)
   {
+    //on fait l'appel puis on regarde ce qu'il se passe pour au choix mettre les données dans Realm ou les récupérer dans Realm
     retrofit.listRepos(user).enqueue(new Callback<List<Repo>>()
     {
       @Override

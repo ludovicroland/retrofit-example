@@ -20,11 +20,13 @@ public final class MainActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
+    //On fait l'appel
     Services.getInstance().listRepos("ludovicroland", new OnResponseListener<List<Repo>>()
     {
       @Override
       public void onSuccess(List<Repo> result)
       {
+        //Si l'appel à réussi, je termine dans cette méthode
         //je récupère ma liste de données
         for (final Repo repo : result)
         {
@@ -35,6 +37,7 @@ public final class MainActivity
       @Override
       public void onFailure(Throwable throwable)
       {
+        //Si l'appel à échoué, je termine ici
         //TODO : afficher une erreur à l'utilisateur
       }
     });
