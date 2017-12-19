@@ -1,9 +1,11 @@
 package fr.rolandl.retrofit.ws;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.gson.GsonBuilder;
 import fr.rolandl.retrofit.bo.Repo;
@@ -21,16 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public final class Services
 {
 
-  //Interface qui va me permettre de faire le lien entre l'appel réseau fait via retrofit
-  // et l'appelant (une activité ou un fragment généralement)
-  public interface OnResponseListener<T>
-  {
-
-    void onSuccess(T result);
-
-    void onFailure(Throwable throwable);
-
-  }
+  private static final String TAG = Services.class.getSimpleName();
 
   //Implémentation du pattern singleton pour ne pas créer plusieurs instance de retrofit (trop couteux)
   private static volatile Services instance;
@@ -74,8 +67,10 @@ public final class Services
   }
 
   //méthode permettant de faire l'appel
-  public void listRepos(@NonNull String user, @NonNull final OnResponseListener<List<Repo>> listener)
+  public List<Repo> listRepos(@NonNull String user)
   {
+    final List<Repo> repositories = new ArrayList<>();
+
     //on fait l'appel puis on regarde ce qu'il se passe pour au choix mettre les données dans Realm ou les récupérer dans Realm
     retrofit.listRepos(user).enqueue(new Callback<List<Repo>>()
     {
@@ -87,15 +82,16 @@ public final class Services
           //1.stocker les informations dans Realm
           //TODO
           //2. les donner
-          listener.onSuccess(response.body());
+          repositories.addAll(response.body());
         }
         else
         {
+          Log.d(Services.TAG, "response is not successful");
           //vérifier si les informations sont pas déjà dans Realm
 
           //cas n°1 : je chope les informations depuis Realm : success
           //null doit bien évidemment être remplacé avec les données qui viennent de Realm
-          listener.onSuccess(null);
+          //          listener.onSuccess(null);
 
           //cas n°2 : les données ne sont pas dans Realm : failure
           //listener.onFailure(t);
@@ -106,16 +102,19 @@ public final class Services
       @Override
       public void onFailure(Call<List<Repo>> call, Throwable t)
       {
+        Log.d(Services.TAG, "onFailure");
         //vérifier que les informations sont pas déjà dans realm
 
         //cas n°1 : je chope les informations depuis Realm : success
         //null doit bien évidemment être remplacé avec les données qui viennent de Realm
-        listener.onSuccess(null);
+        //        listener.onSuccess(null);
 
         //cas n°2 : les données ne sont pas dans Realm : failure
         //listener.onFailure(t);
       }
     });
+
+    return repositories;
   }
 
 }

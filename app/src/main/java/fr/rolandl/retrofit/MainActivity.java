@@ -2,16 +2,19 @@ package fr.rolandl.retrofit;
 
 import java.util.List;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import fr.rolandl.retrofit.bo.Repo;
-import fr.rolandl.retrofit.ws.Services;
-import fr.rolandl.retrofit.ws.Services.OnResponseListener;
+import fr.rolandl.retrofit.viewmodel.RepoViewModel;
 
 public final class MainActivity
     extends AppCompatActivity
+    implements Observer<List<Repo>>
 {
 
   @Override
@@ -20,27 +23,19 @@ public final class MainActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    //On fait l'appel
-    Services.getInstance().listRepos("ludovicroland", new OnResponseListener<List<Repo>>()
-    {
-      @Override
-      public void onSuccess(List<Repo> result)
-      {
-        //Si l'appel à réussi, je termine dans cette méthode
-        //je récupère ma liste de données
-        for (final Repo repo : result)
-        {
-          Log.d(MainActivity.class.getSimpleName(), repo.toString());
-        }
-      }
+    ViewModelProviders.of(this).get(RepoViewModel.class).repositories.observe(this, this);
+  }
 
-      @Override
-      public void onFailure(Throwable throwable)
+  @Override
+  public void onChanged(@Nullable List<Repo> repos)
+  {
+    if (repos != null)
+    {
+      for (final Repo repo : repos)
       {
-        //Si l'appel à échoué, je termine ici
-        //TODO : afficher une erreur à l'utilisateur
+        Log.d(MainActivity.class.getSimpleName(), repo.toString());
       }
-    });
+    }
   }
 
 }
